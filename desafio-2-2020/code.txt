@@ -1,0 +1,43 @@
+# Definição das colunas que serão features (nota-se que a coluna NOME não está presente)
+features = [
+    "MATRICULA", 'REPROVACOES_DE', 'REPROVACOES_EM', "REPROVACOES_MF", "REPROVACOES_GO",
+    "NOTA_DE", "NOTA_EM", "NOTA_MF", "NOTA_GO",
+    "INGLES", "H_AULA_PRES", "TAREFAS_ONLINE", "FALTAS", 
+]
+
+# Definição da variável-alvo
+target = ["PERFIL"]
+
+# Preparação dos argumentos para os métodos da biblioteca ``scikit-learn``
+X = df_data_3[features]
+y = df_data_3[target]
+
+from imblearn.over_sampling import SMOTE
+oversample = SMOTE()
+X_balanced, y_balanced = oversample.fit_resample(X, y)
+
+df_data_4 = pd.DataFrame(data=X_balanced)
+df_data_4["PERFIL"] = y_balanced
+df_data_4["NOME"] = df_data_1["NOME"]
+
+# Criação de um objeto ``SimpleImputer``
+si = SimpleImputer(
+    missing_values=np.nan,  # os valores faltantes são do tipo ``np.nan`` (padrão Pandas)
+    strategy='constant',  # a estratégia escolhida é a alteração do valor faltante por uma constante
+    fill_value="Alexander Augusto",  # a constante que será usada para preenchimento dos valores faltantes é um int64=0.
+    verbose=0,
+    copy=True
+)
+# Aplicamos o SimpleImputer ``si`` ao conjunto de dados df_data_2 (resultado da primeira transformação)
+si.fit(X=df_data_4)
+
+# Reconstrução de um novo DataFrame Pandas com o conjunto imputado (df_data_3)
+df_data_5 = pd.DataFrame.from_records(
+    data=si.transform(
+        X=df_data_4
+    ),  # o resultado SimpleImputer.transform(<<pandas dataframe>>) é lista de listas
+    columns=df_data_4.columns  # as colunas originais devem ser conservadas nessa transformação
+)
+
+df_data_5.to_csv(r'C:\Projects\Github\behind-the-code-2020\desafio-2-2020\Assets\Notebooks\Data\dataset_desafio_2_modificado.csv',
+                 index = False)
